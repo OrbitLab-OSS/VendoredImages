@@ -8,10 +8,6 @@ if [ "${CHROOT:-'unset'}" == "unset" ]; then
 fi
 version="${VERSION:-dev}"
 
-if [ -z "$(which qemu-img)" ]; then
-    sudo apt-get install -y qemu-utils
-fi
-
 if [ -z "$(which guestfish)" ]; then
     sudo apt-get install -y guestfish
 fi
