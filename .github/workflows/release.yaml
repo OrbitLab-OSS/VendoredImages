@@ -25,6 +25,10 @@ jobs:
           VERSION="$(date +"%Y%m%d")"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Create tag
+        run: |
+          git tag "$VERSION"
+          git push origin "$VERSION"
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -39,9 +43,9 @@ jobs:
         run: curl --proto '=https' --tlsv1.2 -fsSL https://static.pantsbuild.org/setup/get-pants.sh | bash
       - name: Build Images
         run: pants run scripts:build
-      - uses: actions/upload-artifact@v4
+      - uses: softprops/action-gh-release@v2
         with:
           name: Vendored Images ${{ steps.version.outputs.version }}
-          path: |
+          files: |
             scripts/orbitlab-debian-13-amd64-${{ steps.version.outputs.version }}.qcow2
             scripts/orbitlab-debian-13-amd64-${{ steps.version.outputs.version }}.qcow2.sha256
