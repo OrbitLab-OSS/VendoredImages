@@ -26,4 +26,6 @@ jobs:
       - name: Install Pants
         run: curl --proto '=https' --tlsv1.2 -fsSL https://static.pantsbuild.org/setup/get-pants.sh | bash
       - name: Build Images
-        run: pants run scripts:build
+        run: |
+          pants run scripts:build
+          pants run scripts:build-dockfs

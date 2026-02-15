@@ -12,13 +12,14 @@ if [ -z "$(which qemu-nbd)" ]; then
     sudo apt-get install -y qemu-utils
 fi
 
-rm -f *.qcow2
-rm -f *.qcow2.sha256
+rm -f orbitlab-debian-13-amd64-*.qcow2
 
 set -o xtrace
 
+cp "$CHROOT/scripts/debian-13-generic-amd64.qcow2" "$CHROOT/debian-13-generic-amd64.qcow2"
+
 sudo modprobe nbd max_part=8
-sudo qemu-nbd --connect=/dev/nbd0 "$CHROOT/scripts/debian-13-generic-amd64.qcow2"
+sudo qemu-nbd --connect=/dev/nbd0 "$CHROOT/debian-13-generic-amd64.qcow2"
 mkdir -p "$CHROOT/mnt"
 sleep 1  # Gives the system a beat to ensure the nbd mounts exist
 sudo mount /dev/nbd0p1 "$CHROOT/mnt"
@@ -37,5 +38,4 @@ sudo umount "$CHROOT/mnt/run"
 sudo umount -l "$CHROOT/mnt"
 sudo qemu-nbd --disconnect /dev/nbd0
 
-mv "$CHROOT/scripts/debian-13-generic-amd64.qcow2" "orbitlab-debian-13-amd64-${version}.qcow2"
-sha256sum "orbitlab-debian-13-amd64-${version}.qcow2" > "orbitlab-debian-13-amd64-${version}.qcow2.sha256"
+mv "$CHROOT/debian-13-generic-amd64.qcow2" "orbitlab-debian-13-amd64-${version}.qcow2"
