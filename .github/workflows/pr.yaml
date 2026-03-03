@@ -6,26 +6,46 @@ env:
   PANTS_CONFIG_FILES: pants.ci.toml
 
 jobs:
-  check:
-    name: Check
+  build:
+    name: PR
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - debian-13
+          - fedora-43
+
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
+
       - name: Configure Pants caching to GitHub Actions Cache
         uses: actions/github-script@v6
         with:
           script: |
             core.exportVariable('PANTS_REMOTE_STORE_ADDRESS', process.env.ACTIONS_CACHE_URL);
             core.exportVariable('PANTS_REMOTE_OAUTH_BEARER_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
+
       - name: Install Pants
         run: curl --proto '=https' --tlsv1.2 -fsSL https://static.pantsbuild.org/setup/get-pants.sh | bash
-      - name: Build Images
-        run: |
-          pants run scripts:build
-          pants run scripts:build-dockfs
+
+      - name: Pants Lint ${{ matrix.os }}
+        run: pants lint all
+
+      - name: Pants Test ${{ matrix.os }}
+        run: pants test all
+
+      - name: Pants Build ${{ matrix.os }}
+        run: pants run ${{ matrix.os }}:build

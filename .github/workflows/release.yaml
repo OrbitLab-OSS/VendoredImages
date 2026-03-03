@@ -9,46 +9,124 @@ env:
   PANTS_CONFIG_FILES: pants.ci.toml
 
 jobs:
-  release:
-    name: Release
+  build:
+    name: Build
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os-image:
+          - debian-13
+          - fedora-43
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: true
-      - name: Set version
-        id: version
-        run: |
-          VERSION="$(date +"%Y%m%d")"
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - name: Create tag
-        run: |
-          git tag "$VERSION"
-          git push origin "$VERSION"
+          persist-credentials: false
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
+
       - name: Configure Pants caching to GitHub Actions Cache
         uses: actions/github-script@v6
         with:
           script: |
             core.exportVariable('PANTS_REMOTE_STORE_ADDRESS', process.env.ACTIONS_CACHE_URL);
             core.exportVariable('PANTS_REMOTE_OAUTH_BEARER_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
+
       - name: Install Pants
         run: curl --proto '=https' --tlsv1.2 -fsSL https://static.pantsbuild.org/setup/get-pants.sh | bash
-      - name: Build Images
+
+      - name: Pants Lint ${{ matrix.os-image }}
+        run: pants lint all
+
+      - name: Pants Test ${{ matrix.os-image }}
+        run: pants test all
+
+      - name: Pants Build ${{ matrix.os-image }}
+        run: pants run ${{ matrix.os-image }}:build
+
+      - name: Upload ${{ matrix.os-image }} Artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.os-image }}
+          path: ${{ matrix.os-image }}/${{ matrix.os-image }}-*
+          retention-days: 1
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Configure Pants caching to GitHub Actions Cache
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('PANTS_REMOTE_STORE_ADDRESS', process.env.ACTIONS_CACHE_URL);
+            core.exportVariable('PANTS_REMOTE_OAUTH_BEARER_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
+
+      - name: Install Pants
+        run: curl --proto '=https' --tlsv1.2 -fsSL https://static.pantsbuild.org/setup/get-pants.sh | bash
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List Artifacts
+        run: ls -latr artifacts/
+
+      - name: Commit metadata
         run: |
-          pants run scripts:build
-          pants run scripts:build-dockfs
+          sudo apt install -y jq
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          declare -a images=()
+          for file in artifacts/**; do
+            FILENAME=$(basename "$file")
+            metadata=$(
+              jq -n --arg filename "$FILENAME" \
+              --arg digest "sha256:$(sha256sum "$file" | awk '{print $1}')" \
+              --arg size $(stat -c%s "$file") \
+              --arg download_url "https://github.com/${{ github.repository }}/releases/download/v$VERSION/$FILENAME" \
+              '{"filename":$filename,"digest":$digest,"size":$size,"browser_download_url":$download_url}'
+            )
+            images+=("$metadata")
+          done
+          assets=$(jq -c -n '$ARGS.positional' --jsonargs "${images[@]}")
+          mkdir -p metadata
+          rm -f metadata/images.json
+          jq -n --arg version "$VERSION" \
+            --arg published_at "$DATE" \
+            --argjson images "$assets" \
+            '{"version": $version, "published_at": $published_at, "images": $images}' > metadata/images.json
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add metadata/images.json
+          git commit -m "Update metadata for v$VERSION"
+          git push
+
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.version }}
-          name: Vendored Images ${{ steps.version.outputs.version }}
-          files: |
-            scripts/orbitlab-debian-13-amd64-${{ steps.version.outputs.version }}.qcow2
-            scripts/orbitlab-dockfs-amd64-${{ steps.version.outputs.version }}.qcow2
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Vendored Images v${{ steps.version.outputs.version }}
+          files: artifacts/*
