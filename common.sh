@@ -56,7 +56,8 @@ fi
 version="$(date -u +"%Y%m%d")"
 
 if [ -z "$(which qemu-nbd)" ]; then
-    sudo apt-get install -y qemu-utils
+    sudo apt update
+    sudo apt install -y qemu-utils
 fi
 
 trap "cleanup" EXIT INT TERM
