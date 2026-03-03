@@ -1,6 +1,5 @@
 # Images
 *.qcow2
-*.qcow2.sha256
 
 # Pants
 .pants.d/
