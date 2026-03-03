@@ -136,7 +136,7 @@ jobs:
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git add metadata/images.json
-          git commit -m "Update metadata for v$VERSION"
+          git commit -m "Update metadata for $VERSION"
           git push
 
       - uses: softprops/action-gh-release@v2
