@@ -29,6 +29,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Set version
+        id: version
+        run: |
+          VERSION="$(date +"%Y%m%d")"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -71,6 +78,13 @@ jobs:
         with:
           fetch-depth: 0
           ssh-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Set version
+        id: version
+        run: |
+          VERSION="$(date +"%Y%m%d")"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -127,6 +141,6 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: Vendored Images v${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Vendored Images ${{ steps.version.outputs.version }}
           files: artifacts/*
