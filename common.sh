@@ -1,8 +1,6 @@
 #!/bin/bash
 
 cleanup() {
-    # Cleanup journal logs
-    sudo chroot "$CHROOT/mnt" journalctl --vacuum-time=1s
     # Remove docs to reduce file size
     sudo rm -rf "$CHROOT/mnt/usr/share/doc/"*
     sudo rm -rf "$CHROOT/mnt/usr/share/man/"*
