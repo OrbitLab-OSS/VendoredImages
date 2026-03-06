@@ -14,6 +14,9 @@ mountQcow2 "$CHROOT/debian-13-generic-amd64.qcow2"
 sudo chroot "$CHROOT/mnt" apt update
 sudo chroot "$CHROOT/mnt" apt upgrade -y
 sudo chroot "$CHROOT/mnt" apt install -y qemu-guest-agent
+sudo chroot "$CHROOT/mnt" apt-get clean
+sudo rm -rf "$CHROOT/mnt/var/lib/apt/lists/*"
+sudo rm -rf "$CHROOT/mnt/var/cache/apt/*"
 
 cleanup
-mv "$CHROOT/debian-13-generic-amd64.qcow2" "debian-13-amd64-${version}.qcow2"
+qemu-img convert -O qcow2 -c "$CHROOT/debian-13-generic-amd64.qcow2" "debian-13-amd64-${version}.qcow2"
