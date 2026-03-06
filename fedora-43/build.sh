@@ -18,5 +18,6 @@ sudo rm -rf "$CHROOT/mnt/var/cache/dnf"
 sudo rm -rf "$CHROOT/mnt/var/cache/yum"
 sudo rm -rf "$CHROOT/mnt/var/lib/dnf/history*"
 
+prep
 cleanup
 qemu-img convert -O qcow2 -c "$CHROOT/fedora-43-generic-amd64.qcow2" "fedora-43-amd64-${version}.qcow2"
