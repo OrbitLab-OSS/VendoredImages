@@ -1,4 +1,4 @@
-#1/bin/bash
+#!/bin/bash
 
 cleanup() {
     if mountpoint "$CHROOT/mnt/proc"; then
@@ -20,6 +20,21 @@ cleanup() {
         sudo umount -l "$CHROOT/mnt"
     fi
     sudo qemu-nbd --disconnect /dev/nbd0
+}
+
+prep() {
+    # Remove docs to reduce file size
+    sudo rm -rf "$CHROOT/mnt/usr/share/doc/"*
+    sudo rm -rf "$CHROOT/mnt/usr/share/man/"*
+    sudo rm -rf "$CHROOT/mnt/usr/share/info/"*
+    # Cleanup temp dirs
+    sudo rm -rf "$CHROOT/mnt/tmp/*"
+    sudo rm -rf "$CHROOT/mnt/var/tmp/*"
+    # Remove any possible ssh host files
+    sudo rm -f "$CHROOT/mnt/etc/ssh/ssh_host_"*
+    # Strip machine ID
+    sudo rm -f "$CHROOT/mnt/var/lib/dbus/machine-id"
+    sudo truncate -s 0 "$CHROOT/mnt/etc/machine-id"
 }
 
 mountQcow2() {
