@@ -1,18 +1,18 @@
 {
-  "version": "20260401",
-  "published_at": "2026-04-01T04:55:40Z",
+  "version": "20260601",
+  "published_at": "2026-06-01T07:11:11Z",
   "images": [
     {
-      "filename": "debian-13-amd64-20260401.qcow2",
-      "digest": "sha256:b12e73b701497e83b6aa7f224e77c0118ef64a7ffe3ff4a4ea0d48fafd263a8c",
-      "size": "423362560",
-      "browser_download_url": "https://github.com/OrbitLab-OSS/VendoredImages/releases/download/20260401/debian-13-amd64-20260401.qcow2"
+      "filename": "debian-13-amd64-20260601.qcow2",
+      "digest": "sha256:d2be5d8306ce1992272a654925360ac0f6c8ba79528c781bfffc355365ce79f9",
+      "size": "516358144",
+      "browser_download_url": "https://github.com/OrbitLab-OSS/VendoredImages/releases/download/20260601/debian-13-amd64-20260601.qcow2"
     },
     {
-      "filename": "fedora-43-amd64-20260401.qcow2",
-      "digest": "sha256:cabd9e09e346eb00fabed2e2ff80eb2d43a681c3226338f6379756141bebeadf",
-      "size": "1344858112",
-      "browser_download_url": "https://github.com/OrbitLab-OSS/VendoredImages/releases/download/20260401/fedora-43-amd64-20260401.qcow2"
+      "filename": "fedora-43-amd64-20260601.qcow2",
+      "digest": "sha256:8f6c4f8c1fe41301310507e89dbc8199036ae22bb89feb2ed1ba78c525de8cfb",
+      "size": "1339439104",
+      "browser_download_url": "https://github.com/OrbitLab-OSS/VendoredImages/releases/download/20260601/fedora-43-amd64-20260601.qcow2"
     }
   ]
 }
